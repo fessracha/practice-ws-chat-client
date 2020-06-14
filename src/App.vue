@@ -1,8 +1,9 @@
 <template>
   <div id="app">
     <div class="ws-chat container mx-auto px-6">
-      <messages :messages="messages" />
-      <div class="flex mt-10">
+      <login v-if="!isAuth" @login="loginChat" />
+      <messages v-if="isAuth" :messages="messages" :nickname="nickname" />
+      <div v-if="isAuth" class="flex mt-10">
         <input
           type="text"
           placeholder="Введите сообщение..."
@@ -19,25 +20,38 @@
 const Ws = new WebSocket("ws://localhost:3000");
 
 import Messages from "@/components/Messages";
+import Login from "@/components/Login";
 import Btn from "@/components/ui-layouts/Btn";
 
 export default {
   name: "App",
   components: {
     Messages,
+    Login,
     Btn
   },
   data() {
     return {
       messages: [],
-      userMessage: ""
+      userMessage: "",
+      nickname: null,
+      isAuth: false
     };
   },
   methods: {
     sendMessage() {
       if (!this.userMessage.length) return;
-      Ws.send(this.userMessage);
+      Ws.send(
+        JSON.stringify({
+          message: this.userMessage,
+          nickname: this.nickname
+        })
+      );
       this.userMessage = "";
+    },
+    loginChat(nickname) {
+      this.nickname = nickname;
+      this.isAuth = true;
     }
   },
   created() {
@@ -46,7 +60,8 @@ export default {
     };
 
     Ws.onmessage = response => {
-      this.messages.unshift(response.data);
+      console.log(JSON.parse(response.data));
+      this.messages.push(JSON.parse(response.data));
     };
   }
 };

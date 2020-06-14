@@ -18,4 +18,8 @@ export default {
 .alert-success {
   @apply bg-green-400;
 }
+
+.alert-info {
+  @apply bg-teal-200 border border-teal-400;
+}
 </style>
